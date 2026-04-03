@@ -17,8 +17,8 @@ export function ChapterRail({
   onSelectStage,
 }: ChapterRailProps) {
   return (
-    <div className="glass-panel glow-ring sticky top-24 rounded-[30px] p-4">
-      <div className="mb-4 rounded-[24px] border border-white/8 bg-white/[0.04] px-4 py-4">
+    <div className="glass-panel glow-ring sticky top-24 rounded-[32px] p-4">
+      <div className="mb-5 rounded-[24px] border border-white/8 bg-white/[0.04] px-4 py-4 shadow-[inset_0_0_26px_rgba(148,163,184,0.04)]">
         <p className="text-xs tracking-[0.24em] text-slate-400">本单元学习环节</p>
         <p className="mt-2 text-sm leading-7 text-slate-300/90">
           7 个连续教学环节构成一个完整学习闭环。
@@ -37,10 +37,10 @@ export function ChapterRail({
               onClick={() => onSelectStage(stage.id)}
               disabled={locked}
               className={clsx(
-                'hex-rail-item relative w-full px-4 py-3 text-left transition duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300',
+                'hex-rail-item group relative w-full overflow-hidden border px-4 py-3 text-left transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300',
                 isActive
-                  ? 'border-sky-300/50 bg-sky-300/14 text-slate-100 shadow-[0_0_28px_rgba(96,165,250,0.18)]'
-                  : 'border-white/8 bg-white/[0.03] text-slate-200/80 hover:border-slate-500 hover:bg-white/[0.05]',
+                  ? 'border-sky-300/45 bg-sky-300/[0.12] text-slate-100 shadow-[0_0_28px_rgba(96,165,250,0.18)]'
+                  : 'border-white/8 bg-white/[0.03] text-slate-200/90 hover:border-slate-500 hover:bg-white/[0.05]',
                 locked && 'cursor-not-allowed opacity-45 saturate-75',
               )}
               aria-current={isActive ? 'step' : undefined}
@@ -60,11 +60,16 @@ export function ChapterRail({
                   <div className="font-display text-[15px] tracking-[0.03em] text-inherit">
                     {stage.titleZh}
                   </div>
-                  <div className="mt-1 text-xs text-slate-400">{stage.titleEn}</div>
+                  <div className="mt-1 text-xs text-slate-400 transition group-hover:text-slate-300">
+                    {stage.titleEn}
+                  </div>
                 </div>
               </div>
               {isActive ? (
-                <div className="absolute right-0 top-1/2 h-px w-8 -translate-y-1/2 bg-gradient-to-r from-sky-300/70 to-transparent" />
+                <>
+                  <div className="absolute right-0 top-1/2 h-px w-8 -translate-y-1/2 bg-gradient-to-r from-sky-300/80 to-transparent" />
+                  <div className="absolute inset-y-3 right-2 w-px bg-gradient-to-b from-transparent via-cyan-300/40 to-transparent" />
+                </>
               ) : null}
             </button>
           )

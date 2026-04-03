@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Noto Sans SC", "Microsoft YaHei UI", "Segoe UI Variable Text", sans-serif;
-  --font-display: "Bahnschrift", "Noto Sans SC", "Segoe UI Variable Display", sans-serif;
+  --font-sans: "Inter", "Noto Sans SC", "Microsoft YaHei UI", "Segoe UI Variable Text", sans-serif;
+  --font-display: "Space Grotesk", "Noto Sans SC", "Segoe UI Variable Display", sans-serif;
   --font-mono: "JetBrains Mono", "Cascadia Code", "Consolas", monospace;
   --color-ink-950: #08111f;
   --color-ink-900: #0d1728;
@@ -11,8 +11,8 @@
 :root {
   color: rgba(226, 232, 240, 0.88);
   background:
-    radial-gradient(circle at top, rgba(56, 189, 248, 0.12), transparent 28%),
-    radial-gradient(circle at 90% 18%, rgba(129, 140, 248, 0.1), transparent 22%),
+    radial-gradient(circle at top, rgba(34, 211, 238, 0.1), transparent 28%),
+    radial-gradient(circle at 88% 18%, rgba(96, 165, 250, 0.08), transparent 22%),
     linear-gradient(180deg, #08111f 0%, #050a13 100%);
   font-family: var(--font-sans);
   font-synthesis: none;
@@ -24,7 +24,7 @@
 html {
   scroll-behavior: smooth;
   scrollbar-width: thin;
-  scrollbar-color: rgba(148, 163, 184, 0.32) transparent;
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
 }
 
 body {
@@ -32,11 +32,11 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background:
-    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px),
-    radial-gradient(circle at center, rgba(59, 130, 246, 0.06), transparent 45%),
+    linear-gradient(rgba(148, 163, 184, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.028) 1px, transparent 1px),
+    radial-gradient(circle at center, rgba(34, 211, 238, 0.05), transparent 44%),
     linear-gradient(180deg, #08111f 0%, #050a13 100%);
-  background-size: 44px 44px, 44px 44px, auto, auto;
+  background-size: 46px 46px, 46px 46px, auto, auto;
   letter-spacing: 0.01em;
 }
 
@@ -58,28 +58,49 @@ button {
   cursor: pointer;
 }
 
+input,
+code,
+.font-mono,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
 ::selection {
   background: rgba(103, 232, 249, 0.24);
 }
 
 .glass-panel {
-  background: linear-gradient(180deg, rgba(13, 23, 40, 0.92), rgba(8, 17, 31, 0.94));
-  box-shadow: 0 28px 60px rgba(1, 7, 18, 0.42);
+  background:
+    linear-gradient(180deg, rgba(13, 23, 40, 0.92), rgba(8, 17, 31, 0.95)),
+    radial-gradient(circle at top, rgba(103, 232, 249, 0.06), transparent 32%);
+  box-shadow:
+    0 28px 60px rgba(1, 7, 18, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(18px);
 }
 
 .panel-grid {
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
-  background-size: 28px 28px;
+    linear-gradient(rgba(148, 163, 184, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.028) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.task-strip {
+  background:
+    linear-gradient(180deg, rgba(12, 20, 34, 0.88), rgba(9, 16, 29, 0.94)),
+    radial-gradient(circle at top left, rgba(34, 211, 238, 0.05), transparent 28%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    inset 0 0 34px rgba(34, 211, 238, 0.045);
 }
 
 .glow-ring {
   box-shadow:
     0 0 0 1px rgba(103, 232, 249, 0.08),
-    0 0 24px rgba(96, 165, 250, 0.15),
-    inset 0 0 24px rgba(96, 165, 250, 0.05);
+    0 0 24px rgba(96, 165, 250, 0.14),
+    inset 0 0 24px rgba(96, 165, 250, 0.04);
 }
 
 .soft-scrollbar::-webkit-scrollbar,
@@ -90,7 +111,7 @@ html::-webkit-scrollbar {
 
 .soft-scrollbar::-webkit-scrollbar-thumb,
 html::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.28);
+  background: rgba(148, 163, 184, 0.26);
   border-radius: 999px;
 }
 
@@ -102,16 +123,21 @@ html::-webkit-scrollbar-track {
 .primary-action {
   background: linear-gradient(135deg, rgba(125, 211, 252, 0.96), rgba(103, 232, 249, 0.92));
   box-shadow:
-    0 0 0 1px rgba(103, 232, 249, 0.22),
-    0 12px 34px rgba(56, 189, 248, 0.22);
-  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+    0 0 0 1px rgba(103, 232, 249, 0.24),
+    0 14px 36px rgba(34, 211, 238, 0.2);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease,
+    filter 160ms ease;
 }
 
 .primary-action:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow:
-    0 0 0 1px rgba(103, 232, 249, 0.28),
-    0 16px 38px rgba(56, 189, 248, 0.24);
+    0 0 0 1px rgba(103, 232, 249, 0.3),
+    0 18px 42px rgba(34, 211, 238, 0.24);
+  filter: saturate(1.02);
 }
 
 .hex-rail-item {
@@ -119,7 +145,7 @@ html::-webkit-scrollbar-track {
 }
 
 .pulse-flow {
-  animation: pulse-flow 1.4s ease-in-out infinite;
+  animation: pulse-flow 1.5s ease-in-out infinite;
 }
 
 .boundary-travel {
@@ -127,18 +153,29 @@ html::-webkit-scrollbar-track {
   animation: boundary-travel 6s linear infinite;
 }
 
-.tabular-nums {
-  font-variant-numeric: tabular-nums;
+.halo-point {
+  filter: drop-shadow(0 0 8px rgba(103, 232, 249, 0.28));
 }
 
 @keyframes pulse-flow {
-  0%, 100% { opacity: 0.35; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.04); }
+  0%,
+  100% {
+    opacity: 0.38;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.035);
+  }
 }
 
 @keyframes boundary-travel {
-  from { stroke-dashoffset: 0; }
-  to { stroke-dashoffset: -120; }
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -120;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

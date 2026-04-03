@@ -13,9 +13,9 @@ export function ConceptPanel({
   understandingProfile,
 }: ConceptPanelProps) {
   return (
-    <aside className="glass-panel soft-scrollbar flex max-h-[calc(100vh-13rem)] flex-col overflow-y-auto rounded-[28px] border border-white/8">
+    <aside className="glass-panel soft-scrollbar flex max-h-[calc(100vh-13rem)] flex-col overflow-y-auto rounded-[30px] border border-white/8">
       <div className="border-b border-white/8 px-5 py-5">
-        <div className="rounded-[22px] border border-cyan-300/15 bg-cyan-300/[0.08] px-4 py-3 text-sm leading-7 text-slate-200/90">
+        <div className="rounded-[22px] border border-cyan-300/14 bg-cyan-300/[0.08] px-4 py-3 text-sm leading-7 text-slate-200/90">
           这是本单元第 {stage.stepNumber} 个教学环节。
         </div>
       </div>
@@ -35,7 +35,7 @@ export function ConceptPanel({
             )}
           >
             <h3 className="font-display text-base tracking-[0.03em]">{card.title}</h3>
-            <p className="mt-2 text-sm leading-7 text-inherit/90">{card.body}</p>
+            <p className="mt-2 text-sm leading-8 text-inherit/90">{card.body}</p>
           </div>
         ))}
 
@@ -52,7 +52,7 @@ export function ConceptPanel({
                 <div key={item.key}>
                   <div className="flex items-center justify-between gap-3 text-sm text-slate-200/90">
                     <span>{item.label}</span>
-                    <span className="font-mono text-xs text-slate-400">
+                    <span className="font-mono tabular-nums text-xs text-slate-400">
                       {item.value === null ? '未形成足够观察' : `${Math.round(item.value * 100)}%`}
                     </span>
                   </div>

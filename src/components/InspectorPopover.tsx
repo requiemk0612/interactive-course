@@ -15,9 +15,9 @@ export function InspectorPopover({
 
   return (
     <div
-      className="pointer-events-auto absolute z-30 w-72 rounded-[24px] border border-cyan-300/18 bg-[rgba(8,14,25,0.92)] p-4 shadow-[0_24px_60px_rgba(2,8,23,0.58)] backdrop-blur-xl"
+      className="pointer-events-auto absolute z-30 w-76 rounded-[26px] border border-cyan-300/16 bg-[rgba(8,14,25,0.93)] p-4 shadow-[0_24px_60px_rgba(2,8,23,0.58)] backdrop-blur-xl"
       style={{
-        left: `calc(${inspector.x}% - 144px)`,
+        left: `calc(${inspector.x}% - 152px)`,
         top: `calc(${inspector.y}% - 10px)`,
       }}
       role="dialog"
@@ -34,7 +34,7 @@ export function InspectorPopover({
         </div>
         <button
           type="button"
-          className="rounded-full border border-slate-700 px-2 py-1 text-xs text-slate-300 transition hover:border-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+          className="rounded-full border border-white/8 px-2 py-1 text-xs text-slate-300 transition hover:border-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
           onClick={onClose}
         >
           关闭

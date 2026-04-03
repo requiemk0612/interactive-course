@@ -77,7 +77,6 @@ type LessonStore = LessonState & {
   restartWithGuide: () => void
   startGuidedMode: () => void
   startFreeMode: () => void
-  dismissOnboarding: () => void
   setHelpOpen: (value: boolean) => void
   clearToast: () => void
   markStageIntroSeen: (stageId: LessonStageId) => void
@@ -163,7 +162,7 @@ export const useLessonStore = create<LessonStore>((set) => ({
       showOnboarding: false,
       hasSeenOnboarding: true,
       helpOpen: false,
-      toastMessage: '已进入引导模式。页面会告诉你先做什么。',
+      toastMessage: '已进入引导模式。页面会告诉你下一步该操作什么。',
     }),
   startFreeMode: () =>
     set({
@@ -171,9 +170,8 @@ export const useLessonStore = create<LessonStore>((set) => ({
       showOnboarding: false,
       hasSeenOnboarding: true,
       helpOpen: false,
-      toastMessage: '已进入自由探索模式。任务条和帮助入口仍会保留。',
+      toastMessage: '已进入自由探索模式。任务条、图例和帮助入口仍会保留。',
     }),
-  dismissOnboarding: () => set({ showOnboarding: false, hasSeenOnboarding: true }),
   setHelpOpen: (value) => set({ helpOpen: value }),
   clearToast: () => set({ toastMessage: null }),
   markStageIntroSeen: (stageId) =>
@@ -201,7 +199,7 @@ export const useLessonStore = create<LessonStore>((set) => ({
       return {
         challengeChecked: true,
         completedActions: appendUnique(state.completedActions, 'challenge-run-check'),
-        toastMessage: '你已经完成了一次完整的预测—检验闭环。',
+        toastMessage: '你已经完成了一次完整的“预测—检验”闭环。',
         engagement: {
           ...state.engagement,
           challengeInsight: state.challengePrediction === 'no',
@@ -243,7 +241,7 @@ export const useLessonStore = create<LessonStore>((set) => ({
       },
       toastMessage:
         mode !== 'relu'
-          ? '你已经看到：仅仅堆叠线性层，并不会自动变成更强的边界。'
+          ? '你已经看到：只是堆叠线性层，并不会自动变成更强的边界。'
           : state.toastMessage,
     })),
   setIntuitionView: (value) => set({ intuitionView: value }),
@@ -282,7 +280,7 @@ export const useLessonStore = create<LessonStore>((set) => ({
       buildUnits: demoHiddenUnits,
       selectedBuildUnitId: 'H1',
       buildThreshold: 3.15,
-      toastMessage: '已自动填入一个可用示范解。你可以继续拖动探针点观察网络如何响应。',
+      toastMessage: '已自动填入一个可用示范解。你可以继续拖动探针点，观察网络如何响应。',
       completedActions: [
         ...state.completedActions,
         'build-boundary-1',

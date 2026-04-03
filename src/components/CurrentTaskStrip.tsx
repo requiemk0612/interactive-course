@@ -12,16 +12,16 @@ export function CurrentTaskStrip({
   stepLabel,
 }: CurrentTaskStripProps) {
   return (
-    <div className="rounded-[24px] border border-cyan-300/14 bg-white/[0.04] px-4 py-4 shadow-[inset_0_0_24px_rgba(103,232,249,0.05)]">
-      <div className="mb-3 flex flex-wrap items-center gap-3">
-        <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-[11px] tracking-[0.18em] text-cyan-100/80">
+    <div className="task-strip rounded-[26px] px-5 py-4">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <span className="rounded-full border border-cyan-300/22 bg-cyan-300/10 px-3 py-1 text-[11px] tracking-[0.18em] text-cyan-100/80">
           当前任务条
         </span>
-        <span className="text-xs text-slate-400">
+        <span className="text-xs tracking-[0.14em] text-slate-400">
           {guideMode === 'guided' ? '引导模式' : '自由探索'}
         </span>
         {stepLabel ? (
-          <span className="rounded-full border border-slate-700/70 bg-black/20 px-3 py-1 text-xs text-slate-300">
+          <span className="rounded-full border border-white/8 bg-black/20 px-3 py-1 text-xs text-slate-300/90">
             {stepLabel}
           </span>
         ) : null}

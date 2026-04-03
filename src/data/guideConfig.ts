@@ -1,7 +1,7 @@
 import type {
   GuideActionId,
-  GuideStep,
   GuideMode,
+  GuideStep,
   HelpTopic,
   LessonStageId,
   StageTaskStrip,
@@ -115,7 +115,7 @@ const stageSteps: Record<LessonStageId, GuideStep[]> = {
       title: '切换激活开关',
       requiredActionIds: ['activation-toggle-once'],
       focusTarget: 'activation-toggle',
-      hint: '切换“关闭 / 开启激活”，比较右侧地图上的有效边界和响应区域怎样改变。',
+      hint: '切换“关闭激活 / 开启激活”，比较地图上的有效边界和区域响应怎样变化。',
       completionToast: '你已经看到：真正改变表达力的不是层数本身，而是非线性激活。',
       bridgeText: '到这里为止，只是增加单元数量仍然不够。',
     },
@@ -281,6 +281,7 @@ export function getTaskStrip({
   completedActions,
 }: TaskStripArgs): StageTaskStrip {
   const base = stageBaseTaskStrips[stageId]
+
   if (guideMode === 'free') {
     return base
   }
