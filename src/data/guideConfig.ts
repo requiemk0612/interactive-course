@@ -68,6 +68,11 @@ export const helpTopics: Record<LessonStageId, HelpTopic> = {
     title: '你现在看到的是什么？',
     body: '这是本单元的收束页。你可以重播四个关键概念片段，把“直接规则失败 → 中间特征出现 → 激活带来表达力 → 最终判断形成”串起来看。',
   },
+  practice: {
+    stageId: 'practice',
+    title: '你现在看到的是什么？',
+    body: '这是课程结尾的巩固练习区。它沿用同一套地图、网络和反馈逻辑，用 5 道短题帮你确认核心概念是否已经真正站稳。',
+  },
 }
 
 const stageSteps: Record<LessonStageId, GuideStep[]> = {
@@ -190,6 +195,7 @@ const stageSteps: Record<LessonStageId, GuideStep[]> = {
       completionToast: '你已经完成了对整节课核心叙事的回顾。',
     },
   ],
+  practice: [],
 }
 
 const stageBaseTaskStrips: Record<LessonStageId, StageTaskStrip> = {
@@ -227,6 +233,11 @@ const stageBaseTaskStrips: Record<LessonStageId, StageTaskStrip> = {
     showing: '本单元的完整概念闭环与一个克制的探索画像。',
     goal: '把四个关键概念重新串起来，形成稳定回忆。',
     action: '点击“重播故事”中的任意一项，回顾你最想再看一遍的概念。',
+  },
+  practice: {
+    showing: '课程结尾的练习测试模块，仍然使用同样的网络与地图语言来检验核心理解。',
+    goal: '用 5 道低压力短题确认：单层网络的局限、结构角色分工、激活函数作用和简单构造思路是否已经清楚。',
+    action: '先看题目与提示，再作答，然后点击“提交本题”。答完后可继续下一题，也可重新作答。',
   },
 }
 

@@ -135,6 +135,8 @@ export function getConceptCards({
           tone: 'success',
         },
       ]
+    case 'practice':
+      return []
   }
 }
 

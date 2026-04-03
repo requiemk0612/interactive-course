@@ -71,4 +71,14 @@ export const stageList: LessonStageMeta[] = [
     description:
       '神经网络表达力的提升，并不是简单地多加几个节点，而是通过构造有意义的中间响应，并用非线性激活把这些响应转成更丰富的决策结构。',
   },
+  {
+    id: 'practice',
+    stepNumber: 8,
+    titleEn: 'Reinforcement Practice',
+    titleZh: '练习测试',
+    shortHint: '用 5 道短练习确认核心概念是否已经真正站稳。',
+    headline: '练习测试',
+    description:
+      '这不是正式考试，而是课程结束后的低压力巩固练习。你将用 5 道短题，把单层网络的局限、隐藏层的中间特征作用、激活函数的重要性和输出层的角色重新串起来。',
+  },
 ]

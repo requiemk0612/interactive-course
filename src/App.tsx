@@ -120,6 +120,23 @@ function App() {
       onApplyTraceWeight={store.applyTraceWeight}
       understandingProfile={understandingProfile}
       onSetMissionReplaySelection={store.setMissionReplaySelection}
+      practiceQuestionIndex={store.practiceQuestionIndex}
+      practiceAnswers={store.practiceAnswers}
+      practiceMatching={store.practiceMatching}
+      practiceBoundary={store.practiceBoundary}
+      onSetPracticeQuestionIndex={store.setPracticeQuestionIndex}
+      onNextPracticeQuestion={store.nextPracticeQuestion}
+      onPreviousPracticeQuestion={store.previousPracticeQuestion}
+      onRestartPractice={store.restartPractice}
+      onSelectPracticeOption={store.selectPracticeOption}
+      onSubmitPracticeQuestion={store.submitPracticeQuestion}
+      onResetPracticeQuestion={store.resetPracticeQuestion}
+      onSelectPracticeToken={store.selectPracticeToken}
+      onAssignPracticeToken={store.assignPracticeToken}
+      onUpdatePracticeBoundary={store.updatePracticeBoundary}
+      onNudgePracticeBoundary={store.nudgePracticeBoundary}
+      onSetPracticeBoundarySide={store.setPracticeBoundarySide}
+      onRevealPracticeBoundaryHint={store.revealPracticeBoundaryHint}
     />
   )
 }

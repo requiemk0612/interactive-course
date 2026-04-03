@@ -1,6 +1,8 @@
 import { create } from 'zustand'
-import { defaultProbePoint, demoHiddenUnits, initialBuildUnits } from '../data/dataset'
+import { defaultProbePoint, demoHiddenUnits, initialBuildUnits, samplePoints } from '../data/dataset'
 import { stageList } from '../data/learningFlowConfig'
+import { practiceQuestions, practiceTokens } from '../data/practiceConfig'
+import { scoreBuildNetwork } from '../lib/networkMath'
 import type {
   ActivationMode,
   ChallengeModel,
@@ -12,6 +14,10 @@ import type {
   InspectorState,
   LessonStageId,
   Point2D,
+  PracticeAnswerState,
+  PracticeBoundaryState,
+  PracticeMatchingState,
+  PracticeQuestionId,
 } from '../types'
 
 const initialChallengeModel: ChallengeModel = {
@@ -27,6 +33,34 @@ const initialEngagement: EngagementState = {
   usedBuildStep: false,
   completedTrace: false,
   challengeInsight: null,
+}
+
+function createPracticeState() {
+  return {
+    practiceQuestionIndex: 0,
+    practiceAnswers: {
+      q1: { selectedOptionId: null, submitted: false, isCorrect: null } as PracticeAnswerState,
+      q2: { selectedOptionId: null, submitted: false, isCorrect: null } as PracticeAnswerState,
+      q4: { selectedOptionId: null, submitted: false, isCorrect: null } as PracticeAnswerState,
+    },
+    practiceMatching: {
+      matches: Object.fromEntries(practiceTokens.map((token) => [token, null])),
+      selectedTokenId: null,
+      submitted: false,
+      isCorrect: null,
+    } as PracticeMatchingState,
+    practiceBoundary: {
+      angle: demoHiddenUnits[3].angle + 0.55,
+      offset: demoHiddenUnits[3].offset + 1.35,
+      side: demoHiddenUnits[3].side,
+      touched: false,
+      touchCount: 0,
+      hintVisible: false,
+      submitted: false,
+      isCorrect: null,
+      locked: false,
+    } as PracticeBoundaryState,
+  }
 }
 
 function createLessonState() {
@@ -55,11 +89,31 @@ function createLessonState() {
     completedActions: [] as GuideActionId[],
     seenStageIntro: [] as LessonStageId[],
     missionReplaySelection: 'one-line-fails',
+    ...createPracticeState(),
   }
 }
 
 function appendUnique<T>(items: T[], item: T) {
   return items.includes(item) ? items : [...items, item]
+}
+
+function getPracticeQuestion(id: PracticeQuestionId) {
+  return practiceQuestions.find((question) => question.id === id)
+}
+
+function normalizeAngleDiff(a: number, b: number) {
+  let diff = a - b
+  while (diff > Math.PI) diff -= Math.PI * 2
+  while (diff < -Math.PI) diff += Math.PI * 2
+  return Math.abs(diff)
+}
+
+function getPracticeBoundaryMismatches(boundary: PracticeBoundaryState) {
+  const units = [...demoHiddenUnits.slice(0, 3), { ...demoHiddenUnits[3], angle: boundary.angle, offset: boundary.offset, side: boundary.side }]
+  return samplePoints.reduce((sum, point) => {
+    const predicted = scoreBuildNetwork(point, units, 3.15) >= 0
+    return sum + Number(predicted !== point.isSafe)
+  }, 0)
 }
 
 type LessonState = ReturnType<typeof createLessonState>
@@ -102,6 +156,19 @@ type LessonStore = LessonState & {
   setTraceWeight: (value: number) => void
   applyTraceWeight: () => void
   setMissionReplaySelection: (value: string) => void
+  setPracticeQuestionIndex: (index: number) => void
+  nextPracticeQuestion: () => void
+  previousPracticeQuestion: () => void
+  restartPractice: () => void
+  selectPracticeOption: (questionId: 'q1' | 'q2' | 'q4', optionId: string) => void
+  submitPracticeQuestion: (questionId: PracticeQuestionId) => void
+  resetPracticeQuestion: (questionId: PracticeQuestionId) => void
+  selectPracticeToken: (tokenId: string | null) => void
+  assignPracticeToken: (tokenId: string, targetId: string) => void
+  updatePracticeBoundary: (patch: Partial<Pick<PracticeBoundaryState, 'angle' | 'offset' | 'side'>>) => void
+  nudgePracticeBoundary: (field: 'angle' | 'offset', delta: number) => void
+  setPracticeBoundarySide: (side: 1 | -1) => void
+  revealPracticeBoundaryHint: () => void
 }
 
 export const useLessonStore = create<LessonStore>((set) => ({
@@ -324,5 +391,198 @@ export const useLessonStore = create<LessonStore>((set) => ({
     set((state) => ({
       missionReplaySelection: value,
       completedActions: appendUnique(state.completedActions, 'summary-replay'),
+    })),
+  setPracticeQuestionIndex: (index) =>
+    set({
+      practiceQuestionIndex: Math.max(0, Math.min(practiceQuestions.length, index)),
+      inspector: null,
+      highlightEdgeId: null,
+    }),
+  nextPracticeQuestion: () =>
+    set((state) => ({
+      practiceQuestionIndex: Math.min(practiceQuestions.length, state.practiceQuestionIndex + 1),
+      inspector: null,
+      highlightEdgeId: null,
+    })),
+  previousPracticeQuestion: () =>
+    set((state) => ({
+      practiceQuestionIndex: Math.max(0, state.practiceQuestionIndex - 1),
+      inspector: null,
+      highlightEdgeId: null,
+    })),
+  restartPractice: () =>
+    set({
+      ...createPracticeState(),
+      toastMessage: '练习测试已重置。你可以重新体验这 5 道短题。',
+    }),
+  selectPracticeOption: (questionId, optionId) =>
+    set((state) => ({
+      practiceAnswers: {
+        ...state.practiceAnswers,
+        [questionId]: {
+          ...state.practiceAnswers[questionId],
+          selectedOptionId: optionId,
+        },
+      },
+    })),
+  submitPracticeQuestion: (questionId) =>
+    set((state) => {
+      if (questionId === 'q3') {
+        const correctMap = getPracticeQuestion('q3')?.correctAnswer as Record<string, string>
+        const isCorrect = practiceTokens.every(
+          (token) => state.practiceMatching.matches[token] === correctMap[token],
+        )
+        return {
+          practiceMatching: {
+            ...state.practiceMatching,
+            submitted: true,
+            isCorrect,
+          },
+          toastMessage: isCorrect
+            ? '这题已经作答完成。你把结构与作用的对应关系串起来了。'
+            : '这题已提交。先别急着记名词，再想一想它们各自负责什么。',
+        }
+      }
+
+      if (questionId === 'q5') {
+        const rule = getPracticeQuestion('q5')?.validationRule
+        const mismatchCount = getPracticeBoundaryMismatches(state.practiceBoundary)
+        const isCorrect = Boolean(
+          rule &&
+            normalizeAngleDiff(state.practiceBoundary.angle, rule.targetAngle ?? 0) <=
+              (rule.angleTolerance ?? 0.42) &&
+            Math.abs(state.practiceBoundary.offset - (rule.targetOffset ?? 0)) <=
+              (rule.offsetTolerance ?? 0.7) &&
+            state.practiceBoundary.side === (rule.requiredSide ?? 1) &&
+            mismatchCount <= (rule.maxMismatches ?? 4),
+        )
+
+        return {
+          practiceBoundary: {
+            ...state.practiceBoundary,
+            submitted: true,
+            isCorrect,
+            locked: isCorrect,
+          },
+          toastMessage: isCorrect
+            ? '最后一个检测条件已经补上，剩余错分点数也降下来了。'
+            : '这题已提交。当前边界方向还不太对，可以重新作答后再调一调。',
+        }
+      }
+
+      const currentAnswer = state.practiceAnswers[questionId as 'q1' | 'q2' | 'q4']
+      const correctAnswer = getPracticeQuestion(questionId)?.correctAnswer as string
+      if (!currentAnswer.selectedOptionId) {
+        return state
+      }
+
+      const isCorrect = currentAnswer.selectedOptionId === correctAnswer
+
+      return {
+        practiceAnswers: {
+          ...state.practiceAnswers,
+          [questionId]: {
+            ...currentAnswer,
+            submitted: true,
+            isCorrect,
+          },
+        },
+        toastMessage: isCorrect
+          ? '这题答对了，说明对应的核心概念已经比较清楚。'
+          : '这题已经提交。先看右侧解释，再决定是否重新作答。',
+      }
+    }),
+  resetPracticeQuestion: (questionId) =>
+    set((state) => {
+      if (questionId === 'q3') {
+        return {
+          practiceMatching: createPracticeState().practiceMatching,
+        }
+      }
+
+      if (questionId === 'q5') {
+        return {
+          practiceBoundary: createPracticeState().practiceBoundary,
+        }
+      }
+
+      return {
+        practiceAnswers: {
+          ...state.practiceAnswers,
+          [questionId]: {
+            selectedOptionId: null,
+            submitted: false,
+            isCorrect: null,
+          },
+        },
+      }
+    }),
+  selectPracticeToken: (tokenId) =>
+    set((state) => ({
+      practiceMatching: {
+        ...state.practiceMatching,
+        selectedTokenId: tokenId,
+      },
+    })),
+  assignPracticeToken: (tokenId, targetId) =>
+    set((state) => {
+      const nextMatches = { ...state.practiceMatching.matches }
+
+      for (const [token, target] of Object.entries(nextMatches)) {
+        if (target === targetId && token !== tokenId) {
+          nextMatches[token] = null
+        }
+      }
+
+      nextMatches[tokenId] = targetId
+
+      return {
+        practiceMatching: {
+          ...state.practiceMatching,
+          matches: nextMatches,
+          selectedTokenId: null,
+        },
+      }
+    }),
+  updatePracticeBoundary: (patch) =>
+    set((state) => ({
+      practiceBoundary: {
+        ...state.practiceBoundary,
+        ...patch,
+        touched: true,
+        touchCount: state.practiceBoundary.touchCount + 1,
+        submitted: false,
+        isCorrect: null,
+      },
+    })),
+  nudgePracticeBoundary: (field, delta) =>
+    set((state) => ({
+      practiceBoundary: {
+        ...state.practiceBoundary,
+        [field]: state.practiceBoundary[field] + delta,
+        touched: true,
+        touchCount: state.practiceBoundary.touchCount + 1,
+        submitted: false,
+        isCorrect: null,
+      },
+    })),
+  setPracticeBoundarySide: (side) =>
+    set((state) => ({
+      practiceBoundary: {
+        ...state.practiceBoundary,
+        side,
+        touched: true,
+        touchCount: state.practiceBoundary.touchCount + 1,
+        submitted: false,
+        isCorrect: null,
+      },
+    })),
+  revealPracticeBoundaryHint: () =>
+    set((state) => ({
+      practiceBoundary: {
+        ...state.practiceBoundary,
+        hintVisible: true,
+      },
+      toastMessage: '提示已显示。注意观察还没有被单独约束的那一侧边界。',
     })),
 }))

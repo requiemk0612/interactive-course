@@ -6,6 +6,7 @@ export type LessonStageId =
   | 'build'
   | 'trace'
   | 'summary'
+  | 'practice'
 
 export type LessonStageMeta = {
   id: LessonStageId
@@ -64,6 +65,7 @@ export type GuideActionId =
   | 'trace-task-1'
   | 'trace-task-2'
   | 'summary-replay'
+  | 'practice-complete'
 
 export type FocusTarget =
   | 'top-bar'
@@ -84,6 +86,7 @@ export type FocusTarget =
   | 'trace-question-1'
   | 'trace-question-2'
   | 'summary-replay'
+  | 'practice-question'
   | null
 
 export type StageTaskStrip = {
@@ -143,3 +146,79 @@ export type UnderstandingProfile = {
   value: number | null
   note: string
 }[]
+
+export type PracticeQuestionId = 'q1' | 'q2' | 'q3' | 'q4' | 'q5'
+
+export type PracticeInteractionType =
+  | 'multiple-choice'
+  | 'drag-match'
+  | 'boundary-adjustment'
+
+export type PracticeContentLayout =
+  | 'split-network-map'
+  | 'split-compare'
+  | 'match-board'
+  | 'split-process'
+  | 'split-workbench'
+
+export type PracticeOption = {
+  id: string
+  labelZh: string
+}
+
+export type PracticeQuestionConfig = {
+  id: PracticeQuestionId
+  titleZh: string
+  instructionZh: string
+  assessmentFocusZh: string
+  hintZh: string
+  interactionType: PracticeInteractionType
+  contentLayout: PracticeContentLayout
+  promptZh: string
+  options?: PracticeOption[]
+  correctAnswer?: string | Record<string, string>
+  validationRule?: {
+    targetAngle?: number
+    targetOffset?: number
+    angleTolerance?: number
+    offsetTolerance?: number
+    requiredSide?: 1 | -1
+    maxMismatches?: number
+  }
+  preSubmitRightPanelCopy: {
+    focusTitle: string
+    focusBody: string
+    hintTitle: string
+    hintBody: string
+  }
+  postSubmitCorrectCopy: string
+  postSubmitIncorrectCopy: string
+  postSubmitExplanationZh: string
+  successCondition: string
+  analyticsTags: string[]
+}
+
+export type PracticeAnswerState = {
+  selectedOptionId: string | null
+  submitted: boolean
+  isCorrect: boolean | null
+}
+
+export type PracticeMatchingState = {
+  matches: Record<string, string | null>
+  selectedTokenId: string | null
+  submitted: boolean
+  isCorrect: boolean | null
+}
+
+export type PracticeBoundaryState = {
+  angle: number
+  offset: number
+  side: 1 | -1
+  touched: boolean
+  touchCount: number
+  hintVisible: boolean
+  submitted: boolean
+  isCorrect: boolean | null
+  locked: boolean
+}

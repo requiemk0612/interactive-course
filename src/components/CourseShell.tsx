@@ -23,6 +23,7 @@ import { LandingMapCanvas } from './LandingMapCanvas'
 import { MissionProgress } from './MissionProgress'
 import { NetworkVisualization } from './NetworkVisualization'
 import { OnboardingBriefing } from './OnboardingBriefing'
+import { PracticeStage } from './PracticeStage'
 import type {
   ActivationMode,
   ChallengeModel,
@@ -35,6 +36,10 @@ import type {
   LessonStageId,
   LessonStageMeta,
   Point2D,
+  PracticeAnswerState,
+  PracticeBoundaryState,
+  PracticeMatchingState,
+  PracticeQuestionId,
   UnderstandingProfile,
 } from '../types'
 
@@ -106,6 +111,29 @@ type Props = {
   onApplyTraceWeight: () => void
   understandingProfile: UnderstandingProfile
   onSetMissionReplaySelection: (value: string) => void
+  practiceQuestionIndex: number
+  practiceAnswers: {
+    q1: PracticeAnswerState
+    q2: PracticeAnswerState
+    q4: PracticeAnswerState
+  }
+  practiceMatching: PracticeMatchingState
+  practiceBoundary: PracticeBoundaryState
+  onSetPracticeQuestionIndex: (index: number) => void
+  onNextPracticeQuestion: () => void
+  onPreviousPracticeQuestion: () => void
+  onRestartPractice: () => void
+  onSelectPracticeOption: (questionId: 'q1' | 'q2' | 'q4', optionId: string) => void
+  onSubmitPracticeQuestion: (questionId: PracticeQuestionId) => void
+  onResetPracticeQuestion: (questionId: PracticeQuestionId) => void
+  onSelectPracticeToken: (tokenId: string | null) => void
+  onAssignPracticeToken: (tokenId: string, targetId: string) => void
+  onUpdatePracticeBoundary: (
+    patch: Partial<Pick<PracticeBoundaryState, 'angle' | 'offset' | 'side'>>,
+  ) => void
+  onNudgePracticeBoundary: (field: 'angle' | 'offset', delta: number) => void
+  onSetPracticeBoundarySide: (side: 1 | -1) => void
+  onRevealPracticeBoundaryHint: () => void
 }
 
 const challengePredictionLabels = [
@@ -195,6 +223,23 @@ export function CourseShell(props: Props) {
     onApplyTraceWeight,
     understandingProfile,
     onSetMissionReplaySelection,
+    practiceQuestionIndex,
+    practiceAnswers,
+    practiceMatching,
+    practiceBoundary,
+    onSetPracticeQuestionIndex,
+    onNextPracticeQuestion,
+    onPreviousPracticeQuestion,
+    onRestartPractice,
+    onSelectPracticeOption,
+    onSubmitPracticeQuestion,
+    onResetPracticeQuestion,
+    onSelectPracticeToken,
+    onAssignPracticeToken,
+    onUpdatePracticeBoundary,
+    onNudgePracticeBoundary,
+    onSetPracticeBoundarySide,
+    onRevealPracticeBoundaryHint,
   } = props
 
   const [activationPreviewMode, setActivationPreviewMode] = useState<ActivationMode | null>(null)
@@ -474,101 +519,132 @@ export function CourseShell(props: Props) {
                 />
               </div>
 
-              <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
-                <div>{renderToolbar()}</div>
-                <GuideManager guideMode={guidedMode} step={activeGuideStep} />
-              </div>
+              {currentStageId === 'practice' ? (
+                <div className="mt-5">{renderToolbar()}</div>
+              ) : (
+                <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+                  <div>{renderToolbar()}</div>
+                  <GuideManager guideMode={guidedMode} step={activeGuideStep} />
+                </div>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 gap-6 p-5 lg:p-7 2xl:grid-cols-[minmax(0,1fr)_380px]">
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                  <div className="relative">
-                    <NetworkVisualization
+            {currentStageId === 'practice' ? (
+              <div className="p-5 lg:p-7">
+                <PracticeStage
+                  questionIndex={practiceQuestionIndex}
+                  answers={practiceAnswers}
+                  matching={practiceMatching}
+                  boundary={practiceBoundary}
+                  onSetQuestionIndex={onSetPracticeQuestionIndex}
+                  onNextQuestion={onNextPracticeQuestion}
+                  onPreviousQuestion={onPreviousPracticeQuestion}
+                  onRestartPractice={onRestartPractice}
+                  onSelectOption={onSelectPracticeOption}
+                  onSubmitQuestion={onSubmitPracticeQuestion}
+                  onResetQuestion={onResetPracticeQuestion}
+                  onSelectToken={onSelectPracticeToken}
+                  onAssignToken={onAssignPracticeToken}
+                  onUpdateBoundary={onUpdatePracticeBoundary}
+                  onNudgeBoundary={onNudgePracticeBoundary}
+                  onSetBoundarySide={onSetPracticeBoundarySide}
+                  onRevealBoundaryHint={onRevealPracticeBoundaryHint}
+                  onJumpToLessonSummary={() => onSelectStage('summary')}
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 p-5 lg:p-7 2xl:grid-cols-[minmax(0,1fr)_380px]">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                    <div className="relative">
+                      <NetworkVisualization
+                        stageId={currentStageId}
+                        model={challengeModel}
+                        onChangeChallengeModel={onChangeChallengeModel}
+                        probePoint={probePoint}
+                        selectedHiddenUnitId={selectedHiddenUnitId}
+                        onSelectHiddenUnit={onSelectHiddenUnit}
+                        buildUnits={buildUnits}
+                        selectedBuildUnitId={selectedBuildUnitId}
+                        onSelectBuildUnit={onSelectBuildUnit}
+                        buildThreshold={buildThreshold}
+                        buildPlaySeed={buildPlaySeed}
+                        teacherMode={teacherMode}
+                        guidedMode={guidedMode}
+                        focusTarget={activeGuideStep?.focusTarget ?? null}
+                        highlightEdgeId={highlightEdgeId}
+                        onHighlightEdge={onHighlightEdge}
+                        onSetInspector={onSetInspector}
+                      />
+                      <InspectorPopover inspector={inspector} onClose={() => onSetInspector(null)} />
+                    </div>
+
+                    <LandingMapCanvas
                       stageId={currentStageId}
                       model={challengeModel}
-                      onChangeChallengeModel={onChangeChallengeModel}
+                      onChangeModel={onChangeChallengeModel}
+                      challengeChecked={challengeChecked}
                       probePoint={probePoint}
+                      onChangeProbePoint={onChangeProbePoint}
                       selectedHiddenUnitId={selectedHiddenUnitId}
-                      onSelectHiddenUnit={onSelectHiddenUnit}
+                      activationMode={effectiveActivationMode}
+                      intuitionView={intuitionView}
                       buildUnits={buildUnits}
                       selectedBuildUnitId={selectedBuildUnitId}
+                      onChangeBuildUnit={onChangeBuildUnit}
                       onSelectBuildUnit={onSelectBuildUnit}
                       buildThreshold={buildThreshold}
-                      buildPlaySeed={buildPlaySeed}
+                      buildScore={buildScore}
+                      traceTestOne={traceTestOne}
+                      traceWeight={traceWeight}
+                      traceApplied={traceApplied}
                       teacherMode={teacherMode}
                       guidedMode={guidedMode}
                       focusTarget={activeGuideStep?.focusTarget ?? null}
-                      highlightEdgeId={highlightEdgeId}
-                      onHighlightEdge={onHighlightEdge}
+                      showStageIntroDemo={showStageIntroDemo}
+                      missionReplaySelection={missionReplaySelection}
                       onSetInspector={onSetInspector}
                     />
-                    <InspectorPopover inspector={inspector} onClose={() => onSetInspector(null)} />
                   </div>
 
-                  <LandingMapCanvas
-                    stageId={currentStageId}
-                    model={challengeModel}
-                    onChangeModel={onChangeChallengeModel}
-                    challengeChecked={challengeChecked}
-                    probePoint={probePoint}
-                    onChangeProbePoint={onChangeProbePoint}
-                    selectedHiddenUnitId={selectedHiddenUnitId}
-                    activationMode={effectiveActivationMode}
-                    intuitionView={intuitionView}
-                    buildUnits={buildUnits}
-                    selectedBuildUnitId={selectedBuildUnitId}
-                    onChangeBuildUnit={onChangeBuildUnit}
-                    onSelectBuildUnit={onSelectBuildUnit}
-                    buildThreshold={buildThreshold}
-                    buildScore={buildScore}
-                    traceTestOne={traceTestOne}
-                    traceWeight={traceWeight}
-                    traceApplied={traceApplied}
-                    teacherMode={teacherMode}
-                    guidedMode={guidedMode}
-                    focusTarget={activeGuideStep?.focusTarget ?? null}
-                    showStageIntroDemo={showStageIntroDemo}
-                    missionReplaySelection={missionReplaySelection}
-                    onSetInspector={onSetInspector}
-                  />
+                  {currentStageId === 'build' ? renderBuildWorkbench() : null}
                 </div>
 
-                {currentStageId === 'build' ? renderBuildWorkbench() : null}
+                <ConceptPanel
+                  stage={stage}
+                  cards={conceptCards}
+                  understandingProfile={understandingProfile}
+                />
               </div>
+            )}
 
-              <ConceptPanel
-                stage={stage}
-                cards={conceptCards}
-                understandingProfile={understandingProfile}
-              />
-            </div>
-
-            <div className="border-t border-white/8 px-5 py-4 lg:px-7">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="text-sm leading-7 text-slate-400">
-                  本作品围绕一个完整知识点，设计了 7 个连续教学环节，让学习者从“直接规则失败”一路走到“隐藏层与激活函数为何必要”的清晰理解。
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={onPrevious}
-                    disabled={stageIndex === 0}
-                    className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 text-sm text-slate-200 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-45"
-                  >
-                    上一步
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onNext}
-                    disabled={!canGoNext}
-                    className="primary-action rounded-2xl px-4 py-3 text-sm font-semibold text-slate-950 disabled:cursor-not-allowed disabled:opacity-45"
-                  >
-                    {stageIndex === stages.length - 1 ? '已到最后' : '下一步'}
-                  </button>
+            {currentStageId !== 'practice' ? (
+              <div className="border-t border-white/8 px-5 py-4 lg:px-7">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div className="text-sm leading-7 text-slate-400">
+                    本作品围绕一个完整知识点，设计了 7 个连续教学环节，让学习者从“直接规则失败”一路走到“隐藏层与激活函数为何必要”的清晰理解。
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={onPrevious}
+                      disabled={stageIndex === 0}
+                      className="rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-3 text-sm text-slate-200 transition hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      上一步
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onNext}
+                      disabled={!canGoNext}
+                      className="primary-action rounded-2xl px-4 py-3 text-sm font-semibold text-slate-950 disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      {stageIndex === stages.length - 1 ? '已到最后' : '下一步'}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : null}
           </div>
         </section>
       </main>
@@ -945,6 +1021,24 @@ export function CourseShell(props: Props) {
                 </button>
               )
             })}
+          </div>
+        </div>
+      )
+    }
+
+    if (currentStageId === 'practice') {
+      return (
+        <div className="rounded-[28px] border border-white/8 bg-white/[0.035] p-4 shadow-[inset_0_0_30px_rgba(148,163,184,0.04)]">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs tracking-[0.18em] text-slate-400">课程延伸 · 低压力巩固</p>
+              <p className="mt-2 text-sm leading-7 text-slate-300/90">
+                这一环节不是正式考试，而是课程结束后的短练习。你会沿用同一套地图、网络和反馈语言，用 5 道小题确认核心理解是否已经站稳。
+              </p>
+            </div>
+            <div className="rounded-full border border-cyan-300/18 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-50/90">
+              保持轻松，先理解，再作答
+            </div>
           </div>
         </div>
       )
