@@ -46,6 +46,68 @@ export type HiddenUnitConfig = {
 
 export type ActivationMode = 'off' | 'relu'
 
+export type GuideMode = 'guided' | 'free'
+
+export type GuideActionId =
+  | 'challenge-prediction'
+  | 'challenge-drag-boundary'
+  | 'challenge-run-check'
+  | 'io-drag-probe'
+  | 'hidden-view-h1'
+  | 'hidden-view-h2'
+  | 'activation-toggle-once'
+  | 'build-boundary-1'
+  | 'build-boundary-2'
+  | 'build-boundary-3'
+  | 'build-boundary-4'
+  | 'build-threshold'
+  | 'trace-task-1'
+  | 'trace-task-2'
+  | 'summary-replay'
+
+export type FocusTarget =
+  | 'top-bar'
+  | 'task-strip'
+  | 'challenge-boundary'
+  | 'challenge-predictions'
+  | 'challenge-run-check'
+  | 'probe-point'
+  | 'hidden-unit-h1'
+  | 'hidden-unit-h2'
+  | 'activation-toggle'
+  | 'build-unit-h1'
+  | 'build-unit-h2'
+  | 'build-unit-h3'
+  | 'build-unit-h4'
+  | 'build-threshold'
+  | 'build-example'
+  | 'trace-question-1'
+  | 'trace-question-2'
+  | 'summary-replay'
+  | null
+
+export type StageTaskStrip = {
+  showing: string
+  goal: string
+  action: string
+}
+
+export type GuideStep = {
+  id: string
+  title: string
+  requiredActionIds: GuideActionId[]
+  focusTarget: FocusTarget
+  hint: string
+  completionToast?: string
+  bridgeText?: string
+}
+
+export type HelpTopic = {
+  stageId: LessonStageId
+  title: string
+  body: string
+}
+
 export type InspectorLine = {
   label: string
   value: string

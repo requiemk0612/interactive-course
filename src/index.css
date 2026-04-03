@@ -1,19 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Segoe UI Variable Text", "PingFang SC", "Microsoft YaHei", sans-serif;
-  --font-display: "Bahnschrift", "Segoe UI Variable Display", "PingFang SC", sans-serif;
-  --font-mono: "Cascadia Code", "JetBrains Mono", "Consolas", monospace;
+  --font-sans: "Noto Sans SC", "Microsoft YaHei UI", "Segoe UI Variable Text", sans-serif;
+  --font-display: "Bahnschrift", "Noto Sans SC", "Segoe UI Variable Display", sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", "Consolas", monospace;
   --color-ink-950: #08111f;
   --color-ink-900: #0d1728;
-  --color-mint-300: #86efac;
 }
 
 :root {
-  color: #d8e5f7;
+  color: rgba(226, 232, 240, 0.88);
   background:
-    radial-gradient(circle at top, rgba(56, 189, 248, 0.16), transparent 28%),
-    radial-gradient(circle at 90% 18%, rgba(129, 140, 248, 0.14), transparent 22%),
+    radial-gradient(circle at top, rgba(56, 189, 248, 0.12), transparent 28%),
+    radial-gradient(circle at 90% 18%, rgba(129, 140, 248, 0.1), transparent 22%),
     linear-gradient(180deg, #08111f 0%, #050a13 100%);
   font-family: var(--font-sans);
   font-synthesis: none;
@@ -24,6 +23,8 @@
 
 html {
   scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.32) transparent;
 }
 
 body {
@@ -31,15 +32,20 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background:
-    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
-    radial-gradient(circle at center, rgba(59, 130, 246, 0.08), transparent 45%),
+    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+    radial-gradient(circle at center, rgba(59, 130, 246, 0.06), transparent 45%),
     linear-gradient(180deg, #08111f 0%, #050a13 100%);
   background-size: 44px 44px, 44px 44px, auto, auto;
+  letter-spacing: 0.01em;
 }
 
 #root {
   min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 button,
@@ -52,65 +58,98 @@ button {
   cursor: pointer;
 }
 
-* {
-  box-sizing: border-box;
-}
-
 ::selection {
   background: rgba(103, 232, 249, 0.24);
 }
 
 .glass-panel {
   background: linear-gradient(180deg, rgba(13, 23, 40, 0.92), rgba(8, 17, 31, 0.94));
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  box-shadow: 0 30px 60px rgba(1, 7, 18, 0.42);
+  box-shadow: 0 28px 60px rgba(1, 7, 18, 0.42);
   backdrop-filter: blur(18px);
 }
 
 .panel-grid {
   background-image:
-    linear-gradient(rgba(148, 163, 184, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+    linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
 .glow-ring {
   box-shadow:
-    0 0 0 1px rgba(103, 232, 249, 0.12),
-    0 0 28px rgba(96, 165, 250, 0.18),
-    inset 0 0 24px rgba(96, 165, 250, 0.08);
+    0 0 0 1px rgba(103, 232, 249, 0.08),
+    0 0 24px rgba(96, 165, 250, 0.15),
+    inset 0 0 24px rgba(96, 165, 250, 0.05);
 }
 
-.soft-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+.soft-scrollbar::-webkit-scrollbar,
+html::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.soft-scrollbar::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-.soft-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.35);
+.soft-scrollbar::-webkit-scrollbar-thumb,
+html::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.28);
   border-radius: 999px;
 }
 
-.soft-scrollbar::-webkit-scrollbar-track {
+.soft-scrollbar::-webkit-scrollbar-track,
+html::-webkit-scrollbar-track {
   background: transparent;
+}
+
+.primary-action {
+  background: linear-gradient(135deg, rgba(125, 211, 252, 0.96), rgba(103, 232, 249, 0.92));
+  box-shadow:
+    0 0 0 1px rgba(103, 232, 249, 0.22),
+    0 12px 34px rgba(56, 189, 248, 0.22);
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+}
+
+.primary-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgba(103, 232, 249, 0.28),
+    0 16px 38px rgba(56, 189, 248, 0.24);
+}
+
+.hex-rail-item {
+  clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
 }
 
 .pulse-flow {
   animation: pulse-flow 1.4s ease-in-out infinite;
 }
 
+.boundary-travel {
+  stroke-dasharray: 18 12;
+  animation: boundary-travel 6s linear infinite;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
 @keyframes pulse-flow {
-  0%, 100% {
-    opacity: 0.35;
-    transform: scale(1);
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes boundary-travel {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -120; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
-  50% {
-    opacity: 1;
-    transform: scale(1.04);
+
+  .pulse-flow,
+  .boundary-travel,
+  .primary-action {
+    animation: none !important;
+    transition: none !important;
   }
 }

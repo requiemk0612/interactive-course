@@ -1,9 +1,4 @@
-import type {
-  ChallengeModel,
-  HiddenUnitConfig,
-  HiddenUnitId,
-  Point2D,
-} from '../types'
+import type { ChallengeModel, HiddenUnitConfig, HiddenUnitId, Point2D } from '../types'
 
 export function getChallengeScore(point: Point2D, model: ChallengeModel) {
   return model.wx * point.x + model.wy * point.y + model.bias
@@ -43,10 +38,7 @@ export function scoreBuildNetwork(
   units: HiddenUnitConfig[],
   threshold: number,
 ) {
-  const activationSum = units.reduce(
-    (sum, unit) => sum + getHiddenActivation(point, unit),
-    0,
-  )
+  const activationSum = units.reduce((sum, unit) => sum + getHiddenActivation(point, unit), 0)
   return activationSum - threshold
 }
 
@@ -66,7 +58,7 @@ export function getHiddenSnapshot(
     interpretation:
       activation > 0
         ? `这个中间检测器在当前位置处于活跃状态，并且${sideText}。`
-        : '这个中间检测器在当前位置尚未被激活。',
+        : '这个中间检测器在当前位置还没有被激活。',
   }
 }
 

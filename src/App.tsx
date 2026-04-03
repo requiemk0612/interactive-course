@@ -8,94 +8,47 @@ import { scoreBuildNetwork } from './lib/networkMath'
 import { useLessonStore } from './store/useLessonStore'
 
 function App() {
-  const {
-    currentStageId,
-    teacherMode,
-    setTeacherMode,
-    goNext,
-    goPrevious,
-    setStage,
-    resetLesson,
-    challengeModel,
-    challengePrediction,
-    setChallengePrediction,
-    challengeChecked,
-    runChallengeCheck,
-    setChallengeModel,
-    probePoint,
-    setProbePoint,
-    selectedHiddenUnitId,
-    selectHiddenUnit,
-    activationMode,
-    setActivationMode,
-    intuitionView,
-    setIntuitionView,
-    buildUnits,
-    setBuildUnit,
-    selectedBuildUnitId,
-    selectBuildUnit,
-    buildThreshold,
-    setBuildThreshold,
-    buildPlaySeed,
-    playBuildFlow,
-    buildGuideStep,
-    stepBuildGuide,
-    resetBuildNetwork,
-    autofillBuildDemo,
-    inspector,
-    setInspector,
-    highlightEdgeId,
-    setHighlightEdgeId,
-    traceAnswerOne,
-    setTraceAnswerOne,
-    traceTestOne,
-    runTraceTestOne,
-    traceAnswerTwo,
-    setTraceAnswerTwo,
-    traceWeight,
-    setTraceWeight,
-    traceApplied,
-    applyTraceWeight,
-    engagement,
-  } = useLessonStore()
-
-  const stageIndex = stageList.findIndex((stage) => stage.id === currentStageId)
+  const store = useLessonStore()
+  const stageIndex = stageList.findIndex((stage) => stage.id === store.currentStageId)
   const activeStage = stageList[stageIndex]
 
-  const buildScore = useMemo(
+  const buildMatches = useMemo(
     () =>
       samplePoints.reduce((sum, point) => {
-        const predicted = scoreBuildNetwork(point, buildUnits, buildThreshold) >= 0
+        const predicted = scoreBuildNetwork(point, store.buildUnits, store.buildThreshold) >= 0
         return sum + Number(predicted === point.isSafe)
-      }, 0) / samplePoints.length,
-    [buildThreshold, buildUnits],
+      }, 0),
+    [store.buildThreshold, store.buildUnits],
   )
+
+  const buildScore = buildMatches / samplePoints.length
+  const buildMismatchCount = samplePoints.length - buildMatches
 
   const conceptCards = useMemo(
     () =>
       getConceptCards({
-        stageId: currentStageId,
-        teacherMode,
-        challengeChecked,
-        challengePrediction,
-        activationMode,
+        stageId: store.currentStageId,
+        teacherMode: store.teacherMode,
+        challengeChecked: store.challengeChecked,
+        challengePrediction: store.challengePrediction,
+        activationMode: store.activationMode,
         buildScore,
-        traceApplied,
+        traceApplied: store.traceApplied,
       }),
     [
-      activationMode,
       buildScore,
-      challengeChecked,
-      challengePrediction,
-      currentStageId,
-      teacherMode,
-      traceApplied,
+      store.activationMode,
+      store.challengeChecked,
+      store.challengePrediction,
+      store.currentStageId,
+      store.teacherMode,
+      store.traceApplied,
     ],
   )
 
   const understandingProfile = useMemo(
-    () => getUnderstandingProfile(engagement),
-    [engagement],
+    () => getUnderstandingProfile(store.engagement),
+    [store.engagement],
   )
 
   return (
@@ -104,56 +57,69 @@ function App() {
       stage={activeStage}
       stageIndex={stageIndex}
       stages={stageList}
-      currentStageId={currentStageId}
-      teacherMode={teacherMode}
-      onToggleTeacherMode={setTeacherMode}
-      onReset={resetLesson}
-      onNext={goNext}
-      onPrevious={goPrevious}
-      onSelectStage={setStage}
+      currentStageId={store.currentStageId}
+      teacherMode={store.teacherMode}
+      guidedMode={store.guidedMode}
+      showOnboarding={store.showOnboarding}
+      helpOpen={store.helpOpen}
+      completedActions={store.completedActions}
+      seenStageIntro={store.seenStageIntro}
+      toastMessage={store.toastMessage}
+      missionReplaySelection={store.missionReplaySelection}
+      onStartGuidedMode={store.startGuidedMode}
+      onStartFreeMode={store.startFreeMode}
+      onRestartWithGuide={store.restartWithGuide}
+      onSetHelpOpen={store.setHelpOpen}
+      onClearToast={store.clearToast}
+      onMarkStageIntroSeen={store.markStageIntroSeen}
+      onToggleTeacherMode={store.setTeacherMode}
+      onReset={store.resetLesson}
+      onNext={store.goNext}
+      onPrevious={store.goPrevious}
+      onSelectStage={store.setStage}
       conceptCards={conceptCards}
-      challengeModel={challengeModel}
-      onChangeChallengeModel={setChallengeModel}
-      challengePrediction={challengePrediction}
-      onChoosePrediction={setChallengePrediction}
-      challengeChecked={challengeChecked}
-      onRunChallenge={runChallengeCheck}
-      probePoint={probePoint}
-      onChangeProbePoint={setProbePoint}
-      selectedHiddenUnitId={selectedHiddenUnitId}
-      onSelectHiddenUnit={selectHiddenUnit}
-      activationMode={activationMode}
-      onChangeActivationMode={setActivationMode}
-      intuitionView={intuitionView}
-      onToggleIntuitionView={setIntuitionView}
-      buildUnits={buildUnits}
-      onChangeBuildUnit={setBuildUnit}
-      selectedBuildUnitId={selectedBuildUnitId}
-      onSelectBuildUnit={selectBuildUnit}
-      buildThreshold={buildThreshold}
-      onChangeBuildThreshold={setBuildThreshold}
-      buildPlaySeed={buildPlaySeed}
-      onPlayBuildFlow={playBuildFlow}
-      buildGuideStep={buildGuideStep}
-      onStepBuildGuide={stepBuildGuide}
-      onResetBuildNetwork={resetBuildNetwork}
-      onAutofillBuildDemo={autofillBuildDemo}
+      challengeModel={store.challengeModel}
+      onChangeChallengeModel={store.setChallengeModel}
+      challengePrediction={store.challengePrediction}
+      onChoosePrediction={store.setChallengePrediction}
+      challengeChecked={store.challengeChecked}
+      onRunChallenge={store.runChallengeCheck}
+      probePoint={store.probePoint}
+      onChangeProbePoint={store.setProbePoint}
+      selectedHiddenUnitId={store.selectedHiddenUnitId}
+      onSelectHiddenUnit={store.selectHiddenUnit}
+      activationMode={store.activationMode}
+      onChangeActivationMode={store.setActivationMode}
+      intuitionView={store.intuitionView}
+      onToggleIntuitionView={store.setIntuitionView}
+      buildUnits={store.buildUnits}
+      onChangeBuildUnit={store.setBuildUnit}
+      selectedBuildUnitId={store.selectedBuildUnitId}
+      onSelectBuildUnit={store.selectBuildUnit}
+      buildThreshold={store.buildThreshold}
+      onChangeBuildThreshold={store.setBuildThreshold}
+      buildPlaySeed={store.buildPlaySeed}
+      onPlayBuildFlow={store.playBuildFlow}
+      onResetBuildNetwork={store.resetBuildNetwork}
+      onAutofillBuildDemo={store.autofillBuildDemo}
       buildScore={buildScore}
-      inspector={inspector}
-      onSetInspector={setInspector}
-      highlightEdgeId={highlightEdgeId}
-      onHighlightEdge={setHighlightEdgeId}
-      traceAnswerOne={traceAnswerOne}
-      onSelectTraceAnswerOne={setTraceAnswerOne}
-      traceTestOne={traceTestOne}
-      onRunTraceTestOne={runTraceTestOne}
-      traceAnswerTwo={traceAnswerTwo}
-      onSelectTraceAnswerTwo={setTraceAnswerTwo}
-      traceWeight={traceWeight}
-      onSetTraceWeight={setTraceWeight}
-      traceApplied={traceApplied}
-      onApplyTraceWeight={applyTraceWeight}
+      buildMismatchCount={buildMismatchCount}
+      inspector={store.inspector}
+      onSetInspector={store.setInspector}
+      highlightEdgeId={store.highlightEdgeId}
+      onHighlightEdge={store.setHighlightEdgeId}
+      traceAnswerOne={store.traceAnswerOne}
+      onSelectTraceAnswerOne={store.setTraceAnswerOne}
+      traceTestOne={store.traceTestOne}
+      onRunTraceTestOne={store.runTraceTestOne}
+      traceAnswerTwo={store.traceAnswerTwo}
+      onSelectTraceAnswerTwo={store.setTraceAnswerTwo}
+      traceWeight={store.traceWeight}
+      onSetTraceWeight={store.setTraceWeight}
+      traceApplied={store.traceApplied}
+      onApplyTraceWeight={store.applyTraceWeight}
       understandingProfile={understandingProfile}
+      onSetMissionReplaySelection={store.setMissionReplaySelection}
     />
   )
 }

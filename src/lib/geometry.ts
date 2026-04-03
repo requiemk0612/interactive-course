@@ -127,5 +127,5 @@ export function getLineEndpoints(
 }
 
 export function formatNumber(value: number, digits = 2) {
-  return `${value >= 0 ? '' : '−'}${Math.abs(value).toFixed(digits)}`
+  return `${value < 0 ? '-' : ''}${Math.abs(value).toFixed(digits)}`
 }

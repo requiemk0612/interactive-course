@@ -10,6 +10,8 @@ import {
 } from '../lib/networkMath'
 import type {
   ChallengeModel,
+  FocusTarget,
+  GuideMode,
   HiddenUnitConfig,
   HiddenUnitId,
   InspectorState,
@@ -42,9 +44,10 @@ type NetworkVisualizationProps = {
   selectedBuildUnitId: HiddenUnitId
   onSelectBuildUnit: (id: HiddenUnitId) => void
   buildThreshold: number
-  buildGuideStep: number
   buildPlaySeed: number
   teacherMode: boolean
+  guidedMode: GuideMode
+  focusTarget: FocusTarget
   highlightEdgeId: string | null
   onHighlightEdge: (id: string | null) => void
   onSetInspector: (inspector: InspectorState | null) => void
@@ -61,33 +64,30 @@ export function NetworkVisualization({
   selectedBuildUnitId,
   onSelectBuildUnit,
   buildThreshold,
-  buildGuideStep,
   buildPlaySeed,
   teacherMode,
+  guidedMode,
+  focusTarget,
   highlightEdgeId,
   onHighlightEdge,
   onSetInspector,
 }: NetworkVisualizationProps) {
   const showHiddenLayer = !['challenge', 'io'].includes(stageId)
-  const score = getChallengeScore(probePoint, model)
-  const label = getBinaryLabel(score)
+  const currentScore = getChallengeScore(probePoint, model)
+  const buildScore = useMemo(
+    () => scoreBuildNetwork(probePoint, buildUnits, buildThreshold),
+    [probePoint, buildUnits, buildThreshold],
+  )
+  const networkLabel = stageId === 'build' || stageId === 'trace' || stageId === 'summary'
+    ? getBinaryLabel(buildScore)
+    : getBinaryLabel(currentScore)
+
   const activeHiddenUnit =
-    stageId === 'build'
+    stageId === 'build' || stageId === 'trace' || stageId === 'summary'
       ? buildUnits.find((unit) => unit.id === selectedBuildUnitId) ?? buildUnits[0]
       : demoHiddenUnits.find((unit) => unit.id === selectedHiddenUnitId) ?? demoHiddenUnits[0]
 
-  const hiddenSnapshot = getHiddenSnapshot(
-    probePoint,
-    activeHiddenUnit,
-    stageId === 'build' ? selectedBuildUnitId : selectedHiddenUnitId,
-  )
-
-  const buildScore = useMemo(
-    () => scoreBuildNetwork(probePoint, buildUnits, buildThreshold),
-    [buildThreshold, buildUnits, probePoint],
-  )
-
-  const networkLabel = stageId === 'build' ? getBinaryLabel(buildScore) : label
+  const hiddenSnapshot = getHiddenSnapshot(probePoint, activeHiddenUnit, activeHiddenUnit.id)
 
   function openInputInspector(key: 'x' | 'y') {
     const position = inputPositions[key]
@@ -100,26 +100,26 @@ export function NetworkVisualization({
         { label: '当前数值', value: formatNumber(probePoint[key]) },
         { label: '节点角色', value: '坐标输入' },
       ],
-      interpretation: '输入层不负责解决问题，它只负责把当前样本的坐标送入网络。',
+      interpretation: '输入层不负责解决问题，它只负责把当前落点坐标送入网络。',
     })
   }
 
   function openOutputInspector() {
-    const stageScore = stageId === 'build' ? buildScore : score
+    const stageScore =
+      stageId === 'build' || stageId === 'trace' || stageId === 'summary'
+        ? buildScore
+        : currentScore
     onSetInspector({
-      title: '输出节点 · 落点评分',
+      title: '输出节点 · 降落评分',
       subtitle: '输出层（Output layer）',
       x: outputPosition.x,
       y: outputPosition.y,
       lines: [
         { label: '当前评分', value: formatNumber(stageScore) },
         { label: '最终判断', value: networkLabel },
-        {
-          label: '决策阈值',
-          value: stageId === 'build' ? formatNumber(buildThreshold) : '0.00',
-        },
+        { label: '决策阈值', value: stageId === 'challenge' || stageId === 'io' ? '0.00' : formatNumber(buildThreshold) },
       ],
-      interpretation: '输出层把前面各处的内部响应组合起来，形成最后的降落判断。',
+      interpretation: '输出层把前面的内部响应组合起来，形成最终的安全或不安全判断。',
     })
   }
 
@@ -150,27 +150,52 @@ export function NetworkVisualization({
       y,
       lines: [
         { label: '权重', value: formatNumber(weight) },
-        { label: '作用', value: '缩放进入下游节点的信号' },
+        { label: '作用', value: '缩放上游信号' },
       ],
-      interpretation:
-        '连接权重决定上游信号会以多大强度影响下游节点，但这种影响仍然沿着前向计算方向传播。',
+      interpretation: '连接权重决定上游信号以多大强度影响下游节点，但影响仍然沿着前向方向传播。',
     })
   }
 
+  function getUnitOpacity(unitId: HiddenUnitId) {
+    if (stageId === 'hidden' && guidedMode === 'guided') {
+      if (focusTarget === 'hidden-unit-h1') {
+        return unitId === 'H1' ? 1 : 0.26
+      }
+      if (focusTarget === 'hidden-unit-h2') {
+        return unitId === 'H2' ? 1 : 0.3
+      }
+    }
+
+    if (stageId === 'build' && guidedMode === 'guided') {
+      const focusMap: Record<string, HiddenUnitId> = {
+        'build-unit-h1': 'H1',
+        'build-unit-h2': 'H2',
+        'build-unit-h3': 'H3',
+        'build-unit-h4': 'H4',
+      }
+      const focusedUnit = focusMap[String(focusTarget)]
+      if (focusedUnit) {
+        return unitId === focusedUnit ? 1 : 0.34
+      }
+    }
+
+    return 1
+  }
+
   return (
-    <div className="glass-panel panel-grid relative h-full min-h-[460px] overflow-hidden rounded-[28px] border border-slate-700/70 p-4">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="glass-panel panel-grid relative h-full min-h-[460px] overflow-hidden rounded-[28px] border border-white/8 p-4">
+      <div className="mb-4 flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-400">网络结构视图</p>
-          <p className="mt-2 text-sm text-slate-300">
+          <p className="text-xs tracking-[0.22em] text-slate-400">网络结构视图</p>
+          <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-300/90">
             {showHiddenLayer
-              ? '点击节点可以查看局部解释，点击连接可以查看权重。'
-              : '从 x、y 直接连到输出节点，构成一个单一步的线性决策规则。'}
+              ? '点击节点查看解释，点击连接查看权重。这里的重点不是记公式，而是看清每个中间响应在整个决策里扮演什么角色。'
+              : '此时只有 x、y 直接连到输出节点。网络只能形成一个直接线性规则。'}
           </p>
         </div>
         {stageId === 'hidden' ? (
-          <div className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1 text-xs text-slate-300">
-            每个隐藏单元都对应一个更简单的中间检测。
+          <div className="rounded-full border border-cyan-300/18 bg-cyan-300/10 px-3 py-1 text-xs text-cyan-50/90">
+            操作提示：一次只看一个隐藏单元
           </div>
         ) : null}
       </div>
@@ -180,15 +205,16 @@ export function NetworkVisualization({
           <>
             {(['H1', 'H2', 'H3', 'H4'] as HiddenUnitId[]).map((hiddenId) => {
               const position = hiddenPositions[hiddenId]
-              const selectedUnit =
-                stageId === 'build'
-                  ? buildUnits.find((unit) => unit.id === hiddenId)!
-                  : demoHiddenUnits.find((unit) => unit.id === hiddenId)!
-              const edgeWeightX = getUnitWeights(selectedUnit).wx
-              const edgeWeightY = getUnitWeights(selectedUnit).wy
+              const unit =
+                stageId === 'build' || stageId === 'trace' || stageId === 'summary'
+                  ? buildUnits.find((item) => item.id === hiddenId) ?? buildUnits[0]
+                  : demoHiddenUnits.find((item) => item.id === hiddenId) ?? demoHiddenUnits[0]
+              const edgeWeightX = getUnitWeights(unit).wx
+              const edgeWeightY = getUnitWeights(unit).wy
+              const opacity = getUnitOpacity(hiddenId)
 
               return (
-                <g key={hiddenId}>
+                <g key={hiddenId} opacity={opacity}>
                   {[
                     {
                       id: `x-${hiddenId}`,
@@ -226,7 +252,7 @@ export function NetworkVisualization({
                             ? edge.id.endsWith('out')
                               ? '#86efac'
                               : '#67e8f9'
-                            : 'rgba(148,163,184,0.55)'
+                            : 'rgba(148,163,184,0.5)'
                         }
                         strokeWidth={highlightEdgeId === edge.id ? 1.1 : 0.65}
                       />
@@ -275,58 +301,62 @@ export function NetworkVisualization({
           </>
         )}
 
-        {(
-          [
-            { key: 'x', position: inputPositions.x },
-            { key: 'y', position: inputPositions.y },
-          ] as const
-        ).map(({ key, position }) => (
-          <g key={key}>
-            <circle cx={position.x} cy={position.y} r={6.6} className="fill-slate-100" />
-            <text
-              x={position.x}
-              y={position.y + 0.5}
-              textAnchor="middle"
-              className="fill-ink-950 text-[4px] font-bold"
-            >
-              {key}
-            </text>
-            <text
-              x={position.x}
-              y={position.y + 12}
-              textAnchor="middle"
-              className="fill-slate-300 text-[3px]"
-            >
-              {formatNumber(probePoint[key])}
-            </text>
-            <circle
-              cx={position.x}
-              cy={position.y}
-              r={9}
-              fill="transparent"
-              onClick={() => openInputInspector(key)}
-            />
-          </g>
-        ))}
+        {(['x', 'y'] as const).map((key) => {
+          const position = inputPositions[key]
+          return (
+            <g key={key}>
+              <circle cx={position.x} cy={position.y} r={6.8} className="fill-slate-100" />
+              <text
+                x={position.x}
+                y={position.y + 0.5}
+                textAnchor="middle"
+                className="fill-ink-950 text-[4px] font-bold"
+              >
+                {key}
+              </text>
+              <text
+                x={position.x}
+                y={position.y + 12}
+                textAnchor="middle"
+                className="fill-slate-300 text-[3px] font-mono"
+              >
+                {formatNumber(probePoint[key])}
+              </text>
+              <circle cx={position.x} cy={position.y} r={9} fill="transparent" onClick={() => openInputInspector(key)} />
+            </g>
+          )
+        })}
 
         {showHiddenLayer
-          ? ((stageId === 'build' ? buildUnits : demoHiddenUnits) as HiddenUnitConfig[]).map(
+          ? (stageId === 'build' || stageId === 'trace' || stageId === 'summary' ? buildUnits : demoHiddenUnits).map(
               (unit, index) => {
                 const position = hiddenPositions[unit.id]
                 const isSelected =
-                  stageId === 'build'
+                  stageId === 'build' || stageId === 'trace' || stageId === 'summary'
                     ? selectedBuildUnitId === unit.id
                     : selectedHiddenUnitId === unit.id
+                const opacity = getUnitOpacity(unit.id)
+
                 return (
-                  <g key={unit.id}>
+                  <g key={unit.id} opacity={opacity}>
                     <circle
                       cx={position.x}
                       cy={position.y}
-                      r={6.6}
-                      fill={isSelected ? unit.accent : 'rgba(226,232,240,0.9)'}
-                      opacity={stageId === 'build' && buildGuideStep < index ? 0.45 : 1}
+                      r={isSelected ? 7.4 : 6.6}
+                      fill={isSelected ? unit.accent : 'rgba(226,232,240,0.92)'}
                       className={buildPlaySeed % 2 === index % 2 ? 'pulse-flow' : ''}
                     />
+                    {isSelected ? (
+                      <circle
+                        cx={position.x}
+                        cy={position.y}
+                        r={10.2}
+                        fill="none"
+                        stroke={unit.accent}
+                        strokeWidth={1.6}
+                        opacity={0.35}
+                      />
+                    ) : null}
                     <text
                       x={position.x}
                       y={position.y + 0.5}
@@ -341,7 +371,7 @@ export function NetworkVisualization({
                       r={9}
                       fill="transparent"
                       onClick={() => {
-                        if (stageId === 'build') {
+                        if (stageId === 'build' || stageId === 'trace' || stageId === 'summary') {
                           onSelectBuildUnit(unit.id)
                         } else {
                           onSelectHiddenUnit(unit.id)
@@ -365,20 +395,14 @@ export function NetworkVisualization({
           >
             out
           </text>
-          <circle
-            cx={outputPosition.x}
-            cy={outputPosition.y}
-            r={10}
-            fill="transparent"
-            onClick={openOutputInspector}
-          />
+          <circle cx={outputPosition.x} cy={outputPosition.y} r={10} fill="transparent" onClick={openOutputInspector} />
           <text
             x={outputPosition.x}
             y={outputPosition.y + 13}
             textAnchor="middle"
             className="fill-slate-100 text-[3.5px]"
           >
-            落点评分
+            降落评分
           </text>
           <text
             x={outputPosition.x}
@@ -392,14 +416,14 @@ export function NetworkVisualization({
       </svg>
 
       {stageId === 'challenge' ? (
-        <div className="absolute bottom-4 left-4 right-4 rounded-2xl border border-slate-700/70 bg-slate-950/75 p-4">
+        <div className="absolute bottom-4 left-4 right-4 rounded-[22px] border border-white/8 bg-black/30 p-4">
           <div className="grid gap-4 md:grid-cols-3">
             {[
               ['wx', 'x 的权重', model.wx, -2.5, 2.5, 0.05],
               ['wy', 'y 的权重', model.wy, -2.5, 2.5, 0.05],
               ['bias', '偏置', model.bias, -4, 4, 0.05],
             ].map(([key, labelText, value, min, max, step]) => (
-              <label key={String(key)} className="text-sm text-slate-200">
+              <label key={String(key)} className="text-sm text-slate-200/90">
                 <span className="mb-2 block">{labelText}</span>
                 <input
                   type="range"
@@ -422,24 +446,23 @@ export function NetworkVisualization({
             ))}
           </div>
           {teacherMode ? (
-            <div className="mt-4 inline-flex rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 font-mono text-xs text-cyan-100">
-              score = {formatNumber(model.wx)}x + {formatNumber(model.wy)}y +{' '}
-              {formatNumber(model.bias)}，阈值为 0
+            <div className="mt-4 inline-flex rounded-full border border-cyan-300/18 bg-cyan-300/10 px-3 py-1 font-mono text-xs text-cyan-100/90">
+              score = {formatNumber(model.wx)}x + {formatNumber(model.wy)}y + {formatNumber(model.bias)}，阈值为 0
             </div>
           ) : null}
         </div>
       ) : null}
 
       {showHiddenLayer ? (
-        <div className="absolute bottom-4 left-4 right-4 rounded-2xl border border-slate-700/70 bg-slate-950/70 p-4 text-sm text-slate-200">
+        <div className="absolute bottom-4 left-4 right-4 rounded-[22px] border border-white/8 bg-black/30 p-4 text-sm text-slate-200/90">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="font-display tracking-wide text-slate-100">
+              <div className="font-display tracking-[0.03em] text-slate-100">
                 {activeHiddenUnit.id} 当前状态
               </div>
-              <div className="mt-1 text-xs text-slate-400">{hiddenSnapshot.interpretation}</div>
+              <div className="mt-1 text-xs leading-6 text-slate-400">{hiddenSnapshot.interpretation}</div>
             </div>
-            <div className="flex gap-3 text-xs text-slate-300">
+            <div className="flex gap-3 font-mono text-xs text-slate-300">
               <span>预激活值 {formatNumber(hiddenSnapshot.preActivation)}</span>
               <span>激活值 {formatNumber(hiddenSnapshot.activation)}</span>
             </div>
